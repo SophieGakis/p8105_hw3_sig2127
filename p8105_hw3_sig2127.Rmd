@@ -156,4 +156,128 @@ As seen in this plot, the 24-hour activity time courses for each education level
 
 # Problem 3
 
+## Importing, cleaning, and tidying the data 
+
+```{r}
+jan20_df = 
+  read_csv(
+    file = "Data/Jan 2020 Citi.csv") |>
+    janitor::clean_names() |>
+  rename(
+      `Ride ID` = ride_id, 
+      `Bike Type` = rideable_type, 
+      Day = weekdays, 
+      `Duration (Minutes)` = duration, 
+      `Start Station` = start_station_name, 
+      `End Station` = end_station_name, 
+      Membership = member_casual
+    ) |>
+    mutate(
+    `Bike Type` = case_match(
+      `Bike Type`,  
+      "classic_bike" ~ "Classic", 
+      "electric_bike" ~ "Electric"
+    ),
+    Membership = case_match(
+      Membership,  
+      "member" ~ "Yes", 
+      "casual" ~ "No"
+    ), 
+    `Duration (Minutes)` = round(as.numeric(`Duration (Minutes)`), digits = 2), 
+    `Set Name` = "Jan 2020"
+    )  
+    
+  
+jul20_df = 
+  read_csv(
+    file = "Data/July 2020 Citi.csv") |>
+    janitor::clean_names() |>
+  rename(
+      `Ride ID` = ride_id, 
+      `Bike Type` = rideable_type, 
+      Day = weekdays, 
+      `Duration (Minutes)` = duration, 
+      `Start Station` = start_station_name, 
+      `End Station` = end_station_name, 
+      Membership = member_casual
+    ) |>
+    mutate(
+    `Bike Type` = case_match(
+      `Bike Type`,  
+      "classic_bike" ~ "Classic", 
+      "electric_bike" ~ "Electric"
+    ),
+    Membership = case_match(
+      Membership,  
+      "member" ~ "Yes", 
+      "casual" ~ "No"
+    ), 
+    `Duration (Minutes)` = round(as.numeric(`Duration (Minutes)`), digits = 2), 
+    `Set Name` = "July 2020"
+    )
+  
+jan24_df = 
+  read_csv(
+    file = "Data/Jan 2024 Citi.csv") |>
+    janitor::clean_names() |>
+  rename(
+      `Ride ID` = ride_id, 
+      `Bike Type` = rideable_type, 
+      Day = weekdays, 
+      `Duration (Minutes)` = duration, 
+      `Start Station` = start_station_name, 
+      `End Station` = end_station_name, 
+      Membership = member_casual
+    ) |>
+    mutate(
+    `Bike Type` = case_match(
+      `Bike Type`,  
+      "classic_bike" ~ "Classic", 
+      "electric_bike" ~ "Electric"
+    ),
+    Membership = case_match(
+      Membership,  
+      "member" ~ "Yes", 
+      "casual" ~ "No"
+    ), 
+    `Duration (Minutes)` = round(as.numeric(`Duration (Minutes)`), digits = 2), 
+    `Set Name` = "Jan 2024"
+    )
+  
+jul24_df = 
+  read_csv(
+    file = "Data/July 2024 Citi.csv") |>
+    janitor::clean_names() |>
+  rename(
+      `Ride ID` = ride_id, 
+      `Bike Type` = rideable_type, 
+      Day = weekdays, 
+      `Duration (Minutes)` = duration, 
+      `Start Station` = start_station_name, 
+      `End Station` = end_station_name, 
+      Membership = member_casual
+    ) |>
+    mutate(
+    `Bike Type` = case_match(
+      `Bike Type`,  
+      "classic_bike" ~ "Classic", 
+      "electric_bike" ~ "Electric"
+    ),
+    Membership = case_match(
+      Membership,  
+      "member" ~ "Yes", 
+      "casual" ~ "No"
+    ), 
+    `Duration (Minutes)` = round(as.numeric(`Duration (Minutes)`), digits = 2), 
+    `Set Name` = "July 2024"
+    )
+
+combined_df = bind_rows(jan20_df, jul20_df, jan24_df, jul24_df)
+
+view(combined_df)
+```
+
+## Describing the resulting dataset
+
+The resulting merged dataset is now a combination of all 4 original data sets (Jan 2020, July 2020, Jan 2024, and July 2024). The dataset contains 8 columns of data for variables Ride ID, Bike Type (electric vs classic), Day of ride, Ride duration in minutes, Start and End station names, if the person had a membership or not, and what original dataset the entry was from. There are 99,485 entries in the combined set. 
 
