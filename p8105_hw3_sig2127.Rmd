@@ -80,12 +80,15 @@ view(accel_df)
 view(combo_df)
 ```
 
-## Table for the number of men and women in each education category
+## Table for the number of males and females in each education category
 
 ```{r}
 demo_df |>
   group_by(Education, Sex) |>
-  summarize(count = n())
+  summarize(count = n()) |> 
+  knitr::kable(
+    caption = "Number of males and females by education category"
+  )
 ```
 
 ## Visualization of the age distributions for men and women in each education category
@@ -280,4 +283,82 @@ view(combined_df)
 ## Describing the resulting dataset
 
 The resulting merged dataset is now a combination of all 4 original data sets (Jan 2020, July 2020, Jan 2024, and July 2024). The dataset contains 8 columns of data for variables Ride ID, Bike Type (electric vs classic), Day of ride, Ride duration in minutes, Start and End station names, if the person had a membership or not, and what original dataset the entry was from. There are 99,485 entries in the combined set. 
+
+## Producing a table to look at membership vs non-membership rides in each year month combination 
+
+```{r}
+combined_df |>
+  group_by(`Set Name`, Membership) |>
+  summarize(count = n()) |> 
+  knitr::kable(
+    caption = "Membership vs Non-Membership rides in each year month combination"
+  )
+```
+
+Based on this table, it appears as though are more rides overall in the summer months (July) as opposed to the winter months (January). Rides also generally increased in both the membership and non-membership categories, in both January and July, from 2020 to 2024. In addition, membership rides made up the majority of rides in each combination of year and month. 
+
+## Producing a table to look at the most popular starting stations for July 2024 
+
+```{r}
+jul24_df |>
+  group_by(`Start Station`) |>
+  summarize(count = n()) |>
+  arrange(desc(count)) |>
+  slice_head(n = 5) |>
+  knitr::kable(
+    caption = "5 most popular starting stations for July 2024"
+  )
+```
+
+## Making a plot to investigate the effects of day of the week, month, and year on median ride duration
+
+```{r}
+combined_df |>
+  separate(`Set Name`, into = c("Month", "Year")) |>
+  mutate(
+    Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    ),
+    Month = factor(Month, levels = c("Jan", "July"))
+  ) |>
+  group_by(Year, Month, Day) |>
+  summarize(
+    median_ridetime = median(`Duration (Minutes)`, na.rm = TRUE)
+  ) |>
+  ggplot(aes(x = Day, y = median_ridetime, color = Year, group = Year)) +
+  geom_line() +
+  geom_point() +
+  facet_grid(. ~ Month) +
+  labs(
+    title = "Effects of day, month, and year on median ride duration",
+    x = "Day of the week",
+    y = "Median ride duration (min)",
+    color = "Year"
+  ) 
+```
+
+This plot shows the effects of day, month, and year on median ride duration. As seen, the median ride duration was the highest overall in July 2020. The median ride duration, generally, seems to increase during the weekend days (Saturday and Sunday), as compared to the week days (Monday-Friday). As exception to this was Sundays in January 2024, which is among the lowest median ride duration out of all days of the week. In addition, the median ride duration was greater in 2020 for all days of the week in both January and July. 
+
+## Making a plot to investigate the impact of month, membership status, and bike type on the distribution of ride duration 
+
+```{r}
+combined_df |>
+  filter(`Set Name` %in% c("Jan 2024", "July 2024")) |>
+  separate(`Set Name`, into = c("Month", "Year")) |>
+  mutate(
+    Month = factor(Month, levels = c("Jan", "July"))
+  ) |>
+  ggplot(aes(x = `Bike Type`, y = `Duration (Minutes)`, fill = Membership)) +
+  geom_boxplot() +
+  facet_grid(. ~ Month) +
+  labs(
+    title = "Impact of month, membership status, and bike type on the distribution of ride duration in 2024",
+    x = "Bike Type",
+    y = "Ride duration (minutes)",
+    fill = "Membership"
+  ) 
+```
+
+Based on these box plots, generally, casual riders without a membership take longer rides than those with membership do. The difference between membership and non-membership ride length seems to be the largest on the classic bikes. Classic bikes are also used for slightly longer duration rides than electric bikes, which is most apparent among non-membership or casual riders. Also, July rides appear to be longer than January rides in every group. In addition, all of the box plots are right-skewed with median values near the lower end of each box. This indicates that a majority of rides are on the shorter side, with a smaller amount reaching a duration of a few hours. 
+
+
 
