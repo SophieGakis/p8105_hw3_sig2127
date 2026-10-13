@@ -10,7 +10,7 @@ library(tidyverse)
 
 # Problem 2 
 
-Loading, tidying, merging, and organizing the data sets
+## Loading, tidying, merging, and organizing the data sets
 
 ```{r}
 demo_df = 
@@ -66,7 +66,11 @@ accel_df =
   ) |> 
   rename(
     SEQN = seqn
+  ) |> 
+  mutate(
+    Minute = as.integer(Minute)
   )
+  
 
 combo_df =
   inner_join(demo_df, accel_df, by = "SEQN")
@@ -76,7 +80,7 @@ view(accel_df)
 view(combo_df)
 ```
 
-Table for the number of men and women in each education category
+## Table for the number of men and women in each education category
 
 ```{r}
 demo_df |>
@@ -84,7 +88,7 @@ demo_df |>
   summarize(count = n())
 ```
 
-Visualization of the age distributions for men and women in each education category
+## Visualization of the age distributions for men and women in each education category
 
 ```{r}
 demo_df |>
@@ -100,6 +104,31 @@ demo_df |>
 
 As seen here, the age distributions of males and females look fairly similar within the “Less than high school” and “More than high school” groups. The “Less than high school” group is the oldest overall, as the median age is around 60 in both males and females.  The “High school equivalent” group shows more difference by sex, with the median female age at about 62 and the median male age at about 53. In this category, the female distribution as a whole appears older than the male one. The “More than high school” group is the youngest, with median ages in the low 40s for both sexes. 
 
+## Creating a total activity variable for each participant
 
+```{r}
+totact_df =
+  combo_df |>
+  group_by(SEQN, Sex, Age, BMI, Education) |>
+  summarize(total_activity = sum(MIMS, na.rm = TRUE), .groups = "drop") 
 
+view(totact_df)
+```
+
+## Plotting total activities against age 
+
+```{r}
+totact_df |>
+  ggplot(aes(x = Age, y = total_activity, color = Sex)) +
+  geom_point(alpha = 0.5) +
+  geom_smooth(se = FALSE) +
+  facet_grid(. ~ Education) +
+  labs(
+    title = "Total activity vs. age by education and sex",
+    x = "Age (years)",
+    y = "Total activity (MIMS)"
+  )
+```
+
+As seen in this plot, total activity generally declines in all education levels and for both sexes after age 60. In general, females tend to have higher levels of total activity than men, with the exception of those over 40 in the "less than high school" education group. The difference in total activity between sexes is most apparent in the "high school equivalent" group, where the females have a much higher level of total activity than males up until age 60 where both groups come closer together. 
 
