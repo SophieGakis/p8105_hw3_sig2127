@@ -1,5 +1,105 @@
 ---
-title: "p8105_hw3_sig2127"
-output: html_document
+title: "P8105 HW3 - Sophie Gakis (sig2127)"
+output: github_document
+date: "2026-10-12"
 ---
+
+```{r}
+library(tidyverse)
+```
+
+# Problem 2 
+
+Loading, tidying, merging, and organizing the data sets
+
+```{r}
+demo_df = 
+  read_csv(
+    file = "Data/nhanes_covar.csv") |>
+    janitor::clean_names() |>
+    slice(-(1:4)) |> 
+    rename(
+      SEQN = x1, 
+      Sex = x1_male, 
+      Age = x3, 
+      BMI = x4, 
+      Education = x1_less_than_high_school
+    )|>
+    mutate(
+    Sex = case_match(
+      Sex,  
+      "1" ~ "Male", 
+      "2" ~ "Female"
+    ),
+    Education = case_match(
+      Education, 
+      "1" ~ "Less than high school", 
+      "2" ~ "High school equivalent", 
+      "3" ~ "More than high school"
+    ), 
+    Age = as.numeric(Age), 
+    BMI = as.numeric(BMI), 
+    SEQN = as.numeric(SEQN), 
+    Sex = factor(Sex, levels = c("Male", "Female")),
+    Education = factor(
+      Education,
+      levels = c("Less than high school",
+                 "High school equivalent",
+                 "More than high school"),
+      ordered = TRUE
+    )
+    )|>
+    filter(
+      Age >= "21", 
+    ) |>
+  drop_na()
+
+accel_df = 
+  read_csv(
+    file = "Data/nhanes_accel.csv") |>
+    janitor::clean_names() |>
+  pivot_longer(
+    min1:min1440, 
+    names_to = "Minute", 
+    names_prefix = "min", 
+    values_to = "MIMS"
+  ) |> 
+  rename(
+    SEQN = seqn
+  )
+
+combo_df =
+  inner_join(demo_df, accel_df, by = "SEQN")
+
+view(demo_df)
+view(accel_df)
+view(combo_df)
+```
+
+Table for the number of men and women in each education category
+
+```{r}
+demo_df |>
+  group_by(Education, Sex) |>
+  summarize(count = n())
+```
+
+Visualization of the age distributions for men and women in each education category
+
+```{r}
+demo_df |>
+  ggplot(aes(x = Sex, y = Age, fill = Sex)) +
+  geom_boxplot(alpha = 0.5) +
+  facet_grid(. ~ Education) +
+  labs(
+    title = "Age distributions of men and women by education category",
+    x = "Sex",
+    y = "Age (years)"
+  ) 
+```
+
+As seen here, the age distributions of males and females look fairly similar within the “Less than high school” and “More than high school” groups. The “Less than high school” group is the oldest overall, as the median age is around 60 in both males and females.  The “High school equivalent” group shows more difference by sex, with the median female age at about 62 and the median male age at about 53. In this category, the female distribution as a whole appears older than the male one. The “More than high school” group is the youngest, with median ages in the low 40s for both sexes. 
+
+
+
 
