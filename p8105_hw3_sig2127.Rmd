@@ -132,3 +132,14 @@ totact_df |>
 
 As seen in this plot, total activity generally declines in all education levels and for both sexes after age 60. In general, females tend to have higher levels of total activity than men, with the exception of those over 40 in the "less than high school" education group. The difference in total activity between sexes is most apparent in the "high school equivalent" group, where the females have a much higher level of total activity than males up until age 60 where both groups come closer together. 
 
+## Making a three-panel plot that shows the 24-hour activity time courses for each education level
+
+```{r}
+combo_df |>
+  ggplot(aes(x = Minute, y = MIMS, color = Sex)) +
+  geom_line(aes(group = SEQN), alpha = 0.05) +
+  geom_smooth(se = FALSE) +
+  facet_grid(~ Education)
+```
+
+
