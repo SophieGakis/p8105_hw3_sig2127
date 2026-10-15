@@ -15,9 +15,9 @@ library(tidyverse)
 ```{r}
 demo_df = 
   read_csv(
-    file = "Data/nhanes_covar.csv") |>
+    file = "Data/nhanes_covar.csv",
+    na = c(".", "NA", "")) |>
     janitor::clean_names() |>
-    slice(-(1:4)) |> 
     rename(
       SEQN = x1, 
       Sex = x1_male, 
@@ -40,23 +40,24 @@ demo_df =
     Age = as.numeric(Age), 
     BMI = as.numeric(BMI), 
     SEQN = as.numeric(SEQN), 
-    Sex = factor(Sex, levels = c("Male", "Female")),
+    Sex = factor(
+      Sex, 
+      levels = c("Male", "Female")
+      ),
     Education = factor(
-      Education,
-      levels = c("Less than high school",
-                 "High school equivalent",
-                 "More than high school"),
-      ordered = TRUE
-    )
-    )|>
+      Education, 
+      levels = c("Less than high school", "High school equivalent", "More than high school"),
+      ordered = TRUE)
+    ) |>
     filter(
-      Age >= "21", 
+      Age >= 21, 
     ) |>
   drop_na()
 
 accel_df = 
   read_csv(
-    file = "Data/nhanes_accel.csv") |>
+    file = "Data/nhanes_accel.csv",
+    na = c(".", "NA", "")) |>
     janitor::clean_names() |>
   pivot_longer(
     min1:min1440, 
@@ -71,13 +72,9 @@ accel_df =
     Minute = as.integer(Minute)
   )
   
-
 combo_df =
   inner_join(demo_df, accel_df, by = "SEQN")
 
-view(demo_df)
-view(accel_df)
-view(combo_df)
 ```
 
 ## Table for the number of males and females in each education category
@@ -90,6 +87,8 @@ demo_df |>
     caption = "Number of males and females by education category"
   )
 ```
+
+As seen in this table, the "less than high school" and "more than high school" education categories are roughly equal in terms of males and females. The "high school eqivalent" category however, has more males compared to females. 
 
 ## Visualization of the age distributions for men and women in each education category
 
@@ -114,8 +113,6 @@ totact_df =
   combo_df |>
   group_by(SEQN, Sex, Age, BMI, Education) |>
   summarize(total_activity = sum(MIMS, na.rm = TRUE), .groups = "drop") 
-
-view(totact_df)
 ```
 
 ## Plotting total activities against age 
@@ -140,9 +137,9 @@ As seen in this plot, total activity generally declines in all education levels 
 ```{r}
 combo_df |>
   ggplot(aes(x = Minute / 60, y = MIMS, color = Sex)) +
-  geom_line(alpha = 0.04) +
+  geom_line(alpha = 0.07) +
   geom_smooth(se = FALSE) +
-  facet_grid(~ Education)  +
+  facet_grid(. ~ Education)  +
   scale_x_continuous(
     breaks = c(0, 4, 8, 12, 16, 20, 24),
     limits = c(0, 24)
@@ -166,7 +163,7 @@ jan20_df =
   read_csv(
     file = "Data/Jan 2020 Citi.csv") |>
     janitor::clean_names() |>
-  rename(
+    rename(
       `Ride ID` = ride_id, 
       `Bike Type` = rideable_type, 
       Day = weekdays, 
@@ -195,7 +192,7 @@ jul20_df =
   read_csv(
     file = "Data/July 2020 Citi.csv") |>
     janitor::clean_names() |>
-  rename(
+    rename(
       `Ride ID` = ride_id, 
       `Bike Type` = rideable_type, 
       Day = weekdays, 
@@ -223,7 +220,7 @@ jan24_df =
   read_csv(
     file = "Data/Jan 2024 Citi.csv") |>
     janitor::clean_names() |>
-  rename(
+    rename(
       `Ride ID` = ride_id, 
       `Bike Type` = rideable_type, 
       Day = weekdays, 
@@ -251,7 +248,7 @@ jul24_df =
   read_csv(
     file = "Data/July 2024 Citi.csv") |>
     janitor::clean_names() |>
-  rename(
+    rename(
       `Ride ID` = ride_id, 
       `Bike Type` = rideable_type, 
       Day = weekdays, 
@@ -277,7 +274,6 @@ jul24_df =
 
 combined_df = bind_rows(jan20_df, jul20_df, jan24_df, jul24_df)
 
-view(combined_df)
 ```
 
 ## Describing the resulting dataset
@@ -316,9 +312,13 @@ jul24_df |>
 combined_df |>
   separate(`Set Name`, into = c("Month", "Year")) |>
   mutate(
-    Day = factor(Day, levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
+    Day = factor(
+      Day, 
+      levels = c("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday")
     ),
-    Month = factor(Month, levels = c("Jan", "July"))
+    Month = factor(
+      Month, 
+      levels = c("Jan", "July"))
   ) |>
   group_by(Year, Month, Day) |>
   summarize(
@@ -345,7 +345,9 @@ combined_df |>
   filter(`Set Name` %in% c("Jan 2024", "July 2024")) |>
   separate(`Set Name`, into = c("Month", "Year")) |>
   mutate(
-    Month = factor(Month, levels = c("Jan", "July"))
+    Month = factor(
+      Month, 
+      levels = c("Jan", "July"))
   ) |>
   ggplot(aes(x = `Bike Type`, y = `Duration (Minutes)`, fill = Membership)) +
   geom_boxplot() +
@@ -353,8 +355,7 @@ combined_df |>
   labs(
     title = "Impact of month, membership status, and bike type on the distribution of ride duration in 2024",
     x = "Bike Type",
-    y = "Ride duration (minutes)",
-    fill = "Membership"
+    y = "Ride duration (minutes)"
   ) 
 ```
 
